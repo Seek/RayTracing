@@ -61,8 +61,6 @@ float& mat4::operator[](int i)
 	return d[i];
 }
 
-
-
 mat4 operator+(const mat4& lhs, const mat4& rhs)
 {
 	mat4 tmp(lhs);
@@ -75,7 +73,17 @@ mat4 operator-(const mat4& lhs, const mat4& rhs)
 	tmp += rhs;
 	return tmp;
 }
-mat4 operator*(const mat4& lhs, const mat4& rhs);
+mat4 operator*(const mat4& lhs, const mat4& rhs)
+{
+	mat4 tmp;
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			
+		}
+	}
+}
 mat4 operator*(const mat4& lhs, float c)
 {
 	mat4 tmp(lhs);
