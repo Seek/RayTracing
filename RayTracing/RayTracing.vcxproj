@@ -148,6 +148,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\mat4.cpp" />
     <ClCompile Include="..\src\raytracing.cpp" />
     <ClCompile Include="..\src\vec3.cpp" />
   </ItemGroup>

@@ -1,5 +1,5 @@
-#include "Vec3.hpp"
-
+#include "vec3.hpp"
+#include "mat4.hpp"
 int main(int argc, char* argv[]) {
 	vec3 a;
 	vec3 b(1.0f, 2.0f, 3.0f);
@@ -11,5 +11,9 @@ int main(int argc, char* argv[]) {
 	vec3 f = normalize(d);
 	d.normalize();
 	dd = d.length();
+	mat4 l;
+	l[2] = 1.2f;
+	l[3] = 2.0f;
+	mat4 m = transpose(l);
 	return 0;
 }
