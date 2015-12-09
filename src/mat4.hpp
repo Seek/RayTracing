@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstring>
+#include <exception>
 
 // A column major 4x4 matrix implementation
 class mat4 {
@@ -30,12 +31,10 @@ public:
 
 mat4 operator+(const mat4& lhs, const mat4& rhs);
 mat4 operator-(const mat4& lhs, const mat4& rhs);
-//TODO: implement matrix multiplication.
 mat4 operator*(const mat4& lhs, const mat4& rhs);
 mat4 operator*(const mat4& lhs, float c);
 mat4 operator*(float c, const mat4& rhs);
 mat4 operator/(const mat4& lhs, float c);
 mat4 transpose(const mat4& a);
-//TODO: Add inverse method
-
+mat4 inv(const mat4& a);
 #endif // !MAT4_HPP

@@ -1,5 +1,7 @@
 #include "vec3.hpp"
 #include "mat4.hpp"
+#include "Transform.hpp"
+
 int main(int argc, char* argv[]) {
 	vec3 a;
 	vec3 b(1.0f, 2.0f, 3.0f);
@@ -14,6 +16,8 @@ int main(int argc, char* argv[]) {
 	mat4 l;
 	l[2] = 1.2f;
 	l[3] = 2.0f;
-	mat4 m = transpose(l);
+	mat4 m = inv(l);
+	mat4 n = m * l;
+	Transform sc = Transform::scale(2.0, 2.0, 2.0);
 	return 0;
 }
