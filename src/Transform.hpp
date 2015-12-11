@@ -20,6 +20,9 @@ public:
 	static Transform perspective();
 	friend Transform inv(const Transform& a);
 	Transform operator*(const Transform& rhs) const;
+	vec3 transformVector(const vec3& a) const;
+	vec3 transformPoint(const vec3& a) const;
+	vec3 transformNormal(const vec3& a) const;
 private:
 	mat4 m, minv;
 };

@@ -18,6 +18,10 @@ int main(int argc, char* argv[]) {
 	l[3] = 2.0f;
 	mat4 m = inv(l);
 	mat4 n = m * l;
+	a = vec3(1.0f, 0.0f, 0.0f);
 	Transform sc = Transform::scale(2.0, 2.0, 2.0);
+	Transform tr = Transform::translate(1.0, 1.0, 1.0);
+	vec3 at = tr.transformVector(a);
+	vec3 att = tr.transformPoint(a);
 	return 0;
 }

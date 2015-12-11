@@ -245,7 +245,7 @@ mat4 inv(const mat4& a)
 	if (det == 0)
 		throw std::exception("Division by zero");
 
-	det = 1.0 / det;
+	det = 1.0f / det;
 
 	for (i = 0; i < 16; i++)
 		inv[i] = inv[i] * det;
