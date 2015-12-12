@@ -53,3 +53,56 @@ Transform inv(const Transform & a)
 {
 	return Transform(a.minv, a.m);
 }
+
+Transform Transform::lookat(const vec3 & eye, const vec3 & target, const vec3 & up)
+{
+	mat4 tmp;
+	tmp.d[3] = eye.x;
+	tmp.d[7] = eye.y;
+	tmp.d[11] = eye.z;
+	vec3 dir = normalize(target - eye);
+	vec3 left = normalize(cross(normalize(up), dir));
+	vec3 newup = normalize(cross(dir, left));
+	tmp.d[0] = left.x;
+	tmp.d[4] = left.y;
+	tmp.d[8] = left.z;
+	tmp.d[1] = newup.x;
+	tmp.d[5] = newup.y;
+	tmp.d[9] = newup.z;
+	tmp.d[2] = dir.x;
+	tmp.d[6] = dir.y;
+	tmp.d[10] = dir.z;
+	return Transform(inv(tmp), tmp);
+}
+
+Transform Transform::orthographic(float near, float far)
+{
+	return Transform::scale(1.0f, 1.0f, 1.0f / (far - near)) * Transform::translate(0.0f, 0.0f, -near);
+}
+
+Transform Transform::orthographic2(float left, float right, float top, float bottom, float near, float far)
+{
+	mat4 m(1.0f, 0.0f, 0.0f, -(left + right) / 2.0f,
+		0.0f, 1.0f, 0.0f, -(top + bottom) / 2.0f,
+		0.0f, 0.0f, -1.0f, -(far + near) / 2.0f,
+		0.0f, 0.0f, 0.0f, 1.0f);
+	return Transform::scale(2.0f/(right-left), 2.0f/(top-bottom), 2.0f/(far-near)) *  Transform(m, inv(m));
+}
+
+Transform Transform::perspective(float fov, float near, float far)
+{
+	mat4 persp;
+	persp.d[10] = far / (far - near);
+	persp.d[11] = -((far * near) / (far - near));
+	persp.d[15] = 0.0f;
+	persp.d[14] = 1.0f;
+	float invtan = 1.0f / tan(fov / 2.0f);
+	return Transform::scale(invtan, invtan, 1.0f) * Transform(persp, inv(persp));
+}
+
+Transform Transform::screenToRaster(float imWidth, float imHeight)
+{
+	float width = imWidth; float height = imHeight;
+	return Transform::scale(imWidth, imHeight, 1.0f) *
+		Transform::translate(1.0f, 1.0f, 0.0f);
+}

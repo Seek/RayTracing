@@ -15,9 +15,13 @@ public:
 	static Transform rotateY(float theta);
 	static Transform rotateZ(float theta);
 	static Transform rotateAxis(float theta, const vec3& axis);
-	static Transform lookat();
-	static Transform orthographic();
-	static Transform perspective();
+	static Transform lookat(const vec3& eye, const vec3& target, const vec3& up);
+	static Transform orthographic(float near, float far);
+	static Transform orthographic2(float left, float right, float top, float bottom, float near, float far);
+	static Transform perspective(float fov, float near, float far);
+	// The pbrt implementation of this function supports subwindowing
+	// we don't at this time.
+	static Transform screenToRaster(float imWidth, float imHeight);
 	friend Transform inv(const Transform& a);
 	Transform operator*(const Transform& rhs) const;
 	vec3 transformVector(const vec3& a) const;

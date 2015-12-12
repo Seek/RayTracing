@@ -23,5 +23,18 @@ int main(int argc, char* argv[]) {
 	Transform tr = Transform::translate(1.0, 1.0, 1.0);
 	vec3 at = tr.transformVector(a);
 	vec3 att = tr.transformPoint(a);
+	Transform WorldToCamera = Transform::lookat(vec3(0.0f, 100.0f, -500.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0, 1.0f, 0.0f));
+	Transform CameraToScreen = Transform::orthographic2(0.0f, 800.0f, 600.0f, 0.0f, 0.1f, 1000.0f);
+	Transform ScreenToRaster = Transform::screenToRaster(800.0f, 600.0f);
+	Transform RasterToScreen = inv(ScreenToRaster);
+	Transform RasterToCamera = inv(CameraToScreen) * RasterToScreen;
+	vec3 p(1.0f, 1.0f, 1.0f);
+	p = WorldToCamera.transformPoint(p); // In camera space
+	p = CameraToScreen.transformPoint(p); // In screen space
+	p = ScreenToRaster.transformPoint(p); // In screen space
+	p = vec3(400.0f, 300.0f, 0.0f);
+	p = RasterToScreen.transformPoint(p);
+	p = inv(CameraToScreen).transformPoint(p);
+	p = inv(WorldToCamera).transformPoint(p);
 	return 0;
 }
