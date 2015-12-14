@@ -20,7 +20,7 @@ Transform Transform::translate(float x, float y, float z)
 
 Transform Transform::operator*(const Transform & rhs) const
 {
-	return Transform(m * rhs.m, minv * rhs.minv);
+	return Transform(m * rhs.m, rhs.minv * minv);
 }
 
 vec3 Transform::transformVector(const vec3 & a) const
@@ -49,6 +49,14 @@ vec3 Transform::transformNormal(const vec3 & a) const
 	return vec3(x, y, z);
 }
 
+Ray Transform::transformRay(const Ray & ray)
+{
+	Ray r(ray);
+	r.o = transformPoint(ray.o);
+	r.dir = transformVector(ray.dir);
+	return r;
+}
+
 Transform inv(const Transform & a)
 {
 	return Transform(a.minv, a.m);
@@ -75,34 +83,28 @@ Transform Transform::lookat(const vec3 & eye, const vec3 & target, const vec3 & 
 	return Transform(inv(tmp), tmp);
 }
 
-Transform Transform::orthographic(float near, float far)
+Transform Transform::orthographic(float left, float right, float top, float bottom, float near, float far)
 {
-	return Transform::scale(1.0f, 1.0f, 1.0f / (far - near)) * Transform::translate(0.0f, 0.0f, -near);
-}
-
-Transform Transform::orthographic2(float left, float right, float top, float bottom, float near, float far)
-{
-	mat4 m(1.0f, 0.0f, 0.0f, -(left + right) / 2.0f,
-		0.0f, 1.0f, 0.0f, -(top + bottom) / 2.0f,
-		0.0f, 0.0f, -1.0f, -(far + near) / 2.0f,
+	//From Real Time Rendering
+	mat4 tmp(2.0f / (right - left), 0.0f, 0.0f, -(right + left) / (right - left),
+		0.0f, 2.0f / (top - bottom), 0.0f, -(top + bottom) / (top - bottom),
+		0.0f, 0.0f, 1.0f / (far - near), -near / (far - near),
 		0.0f, 0.0f, 0.0f, 1.0f);
-	return Transform::scale(2.0f/(right-left), 2.0f/(top-bottom), 2.0f/(far-near)) *  Transform(m, inv(m));
+	return Transform(tmp, inv(tmp));
 }
 
-Transform Transform::perspective(float fov, float near, float far)
+
+Transform Transform::perspective(float left, float right, float top, float bottom, float near, float far)
 {
-	mat4 persp;
-	persp.d[10] = far / (far - near);
-	persp.d[11] = -((far * near) / (far - near));
-	persp.d[15] = 0.0f;
-	persp.d[14] = 1.0f;
-	float invtan = 1.0f / tan(fov / 2.0f);
-	return Transform::scale(invtan, invtan, 1.0f) * Transform(persp, inv(persp));
+	mat4 tmp((2.0f*near) / (right - left), 0.0f, -(right + left) / (right - left), 0.0f,
+		0.0f, (2 * near) / (top - bottom), -(top + bottom) / (top - bottom), 0.0f,
+		0.0f, 0.0f, (far + near) / (far - near), -(2 * far*near) / (far - near),
+		0.0f, 0.0f, 1.0f, 0.0f);
+	return Transform(tmp, inv(tmp));
 }
 
 Transform Transform::screenToRaster(float imWidth, float imHeight)
 {
-	float width = imWidth; float height = imHeight;
-	return Transform::scale(imWidth, imHeight, 1.0f) *
+	return Transform::scale(imWidth / 2.0f, imHeight / 2.0f, 1.0f) *
 		Transform::translate(1.0f, 1.0f, 0.0f);
 }

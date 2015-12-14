@@ -4,6 +4,8 @@
 #pragma once
 #include "mat4.hpp"
 #include "vec3.hpp"
+#include "Ray.hpp"
+
 class Transform {
 public:
 	Transform() {}
@@ -16,9 +18,8 @@ public:
 	static Transform rotateZ(float theta);
 	static Transform rotateAxis(float theta, const vec3& axis);
 	static Transform lookat(const vec3& eye, const vec3& target, const vec3& up);
-	static Transform orthographic(float near, float far);
-	static Transform orthographic2(float left, float right, float top, float bottom, float near, float far);
-	static Transform perspective(float fov, float near, float far);
+	static Transform orthographic(float left, float right, float top, float bottom, float near, float far);
+	static Transform perspective(float left, float right, float top, float bottom, float near, float far);
 	// The pbrt implementation of this function supports subwindowing
 	// we don't at this time.
 	static Transform screenToRaster(float imWidth, float imHeight);
@@ -27,6 +28,7 @@ public:
 	vec3 transformVector(const vec3& a) const;
 	vec3 transformPoint(const vec3& a) const;
 	vec3 transformNormal(const vec3& a) const;
+	Ray transformRay(const Ray& ray);
 private:
 	mat4 m, minv;
 };
