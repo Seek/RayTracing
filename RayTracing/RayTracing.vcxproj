@@ -167,6 +167,7 @@
     <ClInclude Include="..\src\mat4.hpp" />
     <ClInclude Include="..\src\Ray.hpp" />
     <ClInclude Include="..\src\rt_util.hpp" />
+    <ClInclude Include="..\src\Sampling.hpp" />
     <ClInclude Include="..\src\Sphere.hpp" />
     <ClInclude Include="..\src\Surface.hpp" />
     <ClInclude Include="..\src\Transform.hpp" />

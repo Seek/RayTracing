@@ -7,6 +7,7 @@
 #include "png.h"
 #include <stdint.h>
 #include <memory>
+#include "Sampling.hpp"
 #define IMWIDTH 1024
 #define IMHEIGHT 768
 
@@ -20,6 +21,14 @@ void readpng_version_info();
 
 int main(int argc, char* argv[]) 
 {
+
+	std::vector<float> samples;
+	std::vector<float> samples2;
+	samples.reserve(32);
+	samples2.reserve(32);
+	hammersley_2d(16, samples);
+	halton_2d(16, samples2);
+
 	Transform worldToCamera = Transform::lookat(vec3(0.0f, 100.0f, -100.0f), vec3(), vec3(0.0f, 1.0f, 0.0f));
 	Transform camToScreen = Transform::orthographic(float(-IMWIDTH / 2.0f), float(IMWIDTH / 2.0f), float(-IMHEIGHT / 2.0f), float(IMHEIGHT / 2.0f), 0.1f, 1000.0f);
 	Transform screenToRast = Transform::screenToRaster(IMWIDTH, IMHEIGHT);
