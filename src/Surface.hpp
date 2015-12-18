@@ -9,6 +9,7 @@
 
 class Surface {
 public:
+	Surface() {}
 	Surface(const Transform& _obj2world, const Transform& _world2obj)
 		: obj2world(_obj2world), world2obj(_world2obj) {}
 

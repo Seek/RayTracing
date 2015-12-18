@@ -157,16 +157,24 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\mat4.cpp" />
+    <ClCompile Include="..\src\Plane.cpp" />
     <ClCompile Include="..\src\raytracing.cpp" />
+    <ClCompile Include="..\src\RNG.cpp" />
     <ClCompile Include="..\src\Sampling.cpp" />
     <ClCompile Include="..\src\Sphere.cpp" />
     <ClCompile Include="..\src\Transform.cpp" />
     <ClCompile Include="..\src\vec3.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\Camera.hpp" />
+    <ClInclude Include="..\src\Intersection.hpp" />
     <ClInclude Include="..\src\LocalSurface.hpp" />
     <ClInclude Include="..\src\mat4.hpp" />
+    <ClInclude Include="..\src\Material.hpp" />
+    <ClInclude Include="..\src\Plane.hpp" />
     <ClInclude Include="..\src\Ray.hpp" />
+    <ClInclude Include="..\src\Renderable.hpp" />
+    <ClInclude Include="..\src\RNG.hpp" />
     <ClInclude Include="..\src\rt_util.hpp" />
     <ClInclude Include="..\src\Sampling.hpp" />
     <ClInclude Include="..\src\Sphere.hpp" />

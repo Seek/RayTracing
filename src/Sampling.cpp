@@ -36,15 +36,30 @@ void halton_2d(int n, std::vector<float>& points)
 	}
 }
 
-void stratified1D(int nSamples, bool jitter, std::vector<float>& points, const std::mt19937& engine)
+void stratified1D(int nSamples, bool jitter, std::vector<float>& points, const RNG& rng)
 {
-	auto dist = std::uniform_real_distribution<float>();
 	float stratum_size = 1.0f / float(nSamples);
 	for (int i = 0; i < nSamples; ++i)
 	{
-		float del = jitter ? dist(engine) : 0.5;
-		float s = i + jitter;
+		float del = jitter ? rng.nextFloat() : 0.5f;
+		float s = float(i) + del;
 		s *= stratum_size;
 		points.push_back(s);
+	}
+}
+
+void stratified2D(int nX, int nY, bool jitter, std::vector<float>& points, const RNG & rng)
+{
+	float sizeX = 1.0f / float(nX);
+	float sizeY = 1.0f / float(nY);
+	for (int y = 0; y < nY; ++y)
+	{
+		for (int x = 0; x < nX; ++x)
+		{
+			float delX = jitter ? rng.nextFloat() : 0.5f;
+			float delY = jitter ? rng.nextFloat() : 0.5f;
+			points.push_back((x + delX) * sizeX);
+			points.push_back((y + delY) * sizeY);
+		}
 	}
 }

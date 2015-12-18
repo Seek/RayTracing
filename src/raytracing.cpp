@@ -2,6 +2,7 @@
 #include "mat4.hpp"
 #include "Transform.hpp"
 #include "Sphere.hpp"
+#include "Plane.hpp"
 #include <vector>
 #include "zlib.h"
 #include "png.h"
@@ -15,14 +16,19 @@ std::vector<uint8_t> g_red(IMWIDTH*IMHEIGHT);
 std::vector<uint8_t> g_green(IMWIDTH*IMHEIGHT);
 std::vector<uint8_t> g_blue(IMWIDTH*IMHEIGHT);
 uint8_t sphere_color[3] = { 0, 128, 128 };
+uint8_t plane_color[3] = { 128, 128, 128 };
 
 static int save_png_to_file(const char *path);
 void readpng_version_info();
 
 int main(int argc, char* argv[]) 
 {
-
-	Transform worldToCamera = Transform::lookat(vec3(0.0f, 100.0f, -100.0f), vec3(), vec3(0.0f, 1.0f, 0.0f));
+	RNG rng;
+	std::vector<float> samples, samples2;
+	samples.reserve(16); samples2.reserve(16 * 16 * 2);
+	stratified1D(16, false, samples, rng);
+	stratified2D(16, 16, true, samples2, rng);
+	Transform worldToCamera = Transform::lookat(vec3(0.0f, 0.0f, -100.0f), vec3(), vec3(0.0f, 1.0f, 0.0f));
 	Transform camToScreen = Transform::orthographic(float(-IMWIDTH / 2.0f), float(IMWIDTH / 2.0f), float(-IMHEIGHT / 2.0f), float(IMHEIGHT / 2.0f), 0.1f, 1000.0f);
 	Transform screenToRast = Transform::screenToRaster(IMWIDTH, IMHEIGHT);
 	Transform rastToScreen = inv(screenToRast);
@@ -33,6 +39,11 @@ int main(int argc, char* argv[])
 	Transform tinv = inv(t);
 	std::vector<std::unique_ptr<Surface> > surfaces;
 	surfaces.push_back(std::unique_ptr<Surface>(new Sphere(t, tinv, 125.0f)));
+	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(), vec3(0.0f, 1.0f, 0.0f))));
+	surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(0, 0, 150.0f), vec3(0.0f, 0.0f, -1.0f))));
+	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(0, 150.0, 0.0f), vec3(0.0f, -1.0f, 0.0f))));
+	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(0, 300.0f, 0.0f), vec3(-1.0f, 0.0f, 0.0f))));
+	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(0, -300.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f))));
 	std::unique_ptr<LocalSurface> surfaceHit;
 	LocalSurface ls;
 	vec3 light(0.0f, 200.0f, 0.0f);
@@ -41,6 +52,8 @@ int main(int argc, char* argv[])
 	{
 		for (int j = 0; j < IMWIDTH; ++j)
 		{
+			int numHit = 0;
+			int surfaceType;
 			vec3 pras(float(j), float(i), 0.0f);
 			vec3 pcam = rastToScreen.transformPoint(pras);
 			pcam = screenToCamera.transformPoint(pcam);
@@ -57,8 +70,9 @@ int main(int argc, char* argv[])
 				if (tObj < tHit || hit == false) continue;
 				tHit = tObj;
 				surfaceHit = std::unique_ptr<LocalSurface> (new LocalSurface(ls));
+				numHit += 1;
 			}
-			if (hit == false)
+			if (numHit == 0)
 			{
 				g_red[i* IMWIDTH + j] = 0;
 				g_blue[i* IMWIDTH + j] = 0;
@@ -69,9 +83,9 @@ int main(int argc, char* argv[])
 			vec3 L = normalize(light - surfaceHit->p);
 			float ndl = dot(surfaceHit->n, L);
 			float lterm = std::max(ndl, 0.0f);
-			uint8_t r = sphere_color[0] * lterm + 20; 
-			uint8_t g = sphere_color[1] * lterm + 20;
-			uint8_t b = sphere_color[2] * lterm + 20;
+			uint8_t r = sphere_color[0] * lterm; 
+			uint8_t g = sphere_color[1] * lterm;
+			uint8_t b = sphere_color[2] * lterm;
 			g_red[i* IMWIDTH + j] = r;
 			g_green[i* IMWIDTH + j] = g;
 			g_blue[i * IMWIDTH + j] = b;

@@ -28,7 +28,7 @@ public:
 	vec3 transformVector(const vec3& a) const;
 	vec3 transformPoint(const vec3& a) const;
 	vec3 transformNormal(const vec3& a) const;
-	Ray transformRay(const Ray& ray);
+	Ray transformRay(const Ray& ray) const;
 private:
 	mat4 m, minv;
 };

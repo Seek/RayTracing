@@ -25,7 +25,7 @@ public:
 	float maxt = std::numeric_limits<float>::infinity();
 	int depth = 0; //For limiting bounces
 
-	vec3 operator()(float t)
+	vec3 operator()(float t) const
 	{
 		return o + t * dir;
 	}

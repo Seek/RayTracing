@@ -49,7 +49,7 @@ vec3 Transform::transformNormal(const vec3 & a) const
 	return vec3(x, y, z);
 }
 
-Ray Transform::transformRay(const Ray & ray)
+Ray Transform::transformRay(const Ray & ray) const
 {
 	Ray r(ray);
 	r.o = transformPoint(ray.o);
