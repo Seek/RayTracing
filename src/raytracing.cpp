@@ -9,9 +9,11 @@
 #include <stdint.h>
 #include <memory>
 #include "Sampling.hpp"
+#include "Renderable.hpp"
 #define IMWIDTH 1024
 #define IMHEIGHT 768
 
+float force;
 std::vector<uint8_t> g_red(IMWIDTH*IMHEIGHT);
 std::vector<uint8_t> g_green(IMWIDTH*IMHEIGHT);
 std::vector<uint8_t> g_blue(IMWIDTH*IMHEIGHT);
@@ -53,7 +55,6 @@ int main(int argc, char* argv[])
 		for (int j = 0; j < IMWIDTH; ++j)
 		{
 			int numHit = 0;
-			int surfaceType;
 			vec3 pras(float(j), float(i), 0.0f);
 			vec3 pcam = rastToScreen.transformPoint(pras);
 			pcam = screenToCamera.transformPoint(pcam);
