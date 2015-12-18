@@ -158,6 +158,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\mat4.cpp" />
     <ClCompile Include="..\src\raytracing.cpp" />
+    <ClCompile Include="..\src\Sampling.cpp" />
     <ClCompile Include="..\src\Sphere.cpp" />
     <ClCompile Include="..\src\Transform.cpp" />
     <ClCompile Include="..\src\vec3.cpp" />
