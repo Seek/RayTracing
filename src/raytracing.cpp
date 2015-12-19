@@ -10,6 +10,7 @@
 #include <memory>
 #include "Sampling.hpp"
 #include "Renderable.hpp"
+#include "PerspectiveCamera.hpp"
 #define IMWIDTH 1024
 #define IMHEIGHT 768
 
@@ -30,25 +31,23 @@ int main(int argc, char* argv[])
 	samples.reserve(16); samples2.reserve(16 * 16 * 2);
 	stratified1D(16, false, samples, rng);
 	stratified2D(16, 16, true, samples2, rng);
-	Transform worldToCamera = Transform::lookat(vec3(0.0f, 0.0f, -100.0f), vec3(), vec3(0.0f, 1.0f, 0.0f));
-	Transform camToScreen = Transform::orthographic(float(-IMWIDTH / 2.0f), float(IMWIDTH / 2.0f), float(-IMHEIGHT / 2.0f), float(IMHEIGHT / 2.0f), 0.1f, 1000.0f);
-	Transform screenToRast = Transform::screenToRaster(IMWIDTH, IMHEIGHT);
-	Transform rastToScreen = inv(screenToRast);
-	Transform screenToCamera = inv(camToScreen);
-	Transform cameraToWorld = inv(worldToCamera);
+	Transform worldToCamera = Transform::lookat(vec3(0.0f, 0.0f, -200.0f), vec3(), vec3(0.0f, 1.0f, 0.0f));
+	std::unique_ptr<Camera> cam( new PerspectiveCamera(inv(worldToCamera),worldToCamera,
+		float(-IMWIDTH / 2.0f), float(IMWIDTH / 2.0f), float(-IMHEIGHT / 2.0f), float(IMHEIGHT / 2.0f), 0.1f, 1000.0f,
+		IMWIDTH, IMHEIGHT));
 	readpng_version_info();
 	Transform t;
 	Transform tinv = inv(t);
 	std::vector<std::unique_ptr<Surface> > surfaces;
 	surfaces.push_back(std::unique_ptr<Surface>(new Sphere(t, tinv, 125.0f)));
 	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(), vec3(0.0f, 1.0f, 0.0f))));
-	surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(0, 0, 150.0f), vec3(0.0f, 0.0f, -1.0f))));
+	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(0, 0, 150.0f), vec3(0.0f, 0.0f, -1.0f))));
 	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(0, 150.0, 0.0f), vec3(0.0f, -1.0f, 0.0f))));
 	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(0, 300.0f, 0.0f), vec3(-1.0f, 0.0f, 0.0f))));
 	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(0, -300.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f))));
 	std::unique_ptr<LocalSurface> surfaceHit;
 	LocalSurface ls;
-	vec3 light(0.0f, 200.0f, 0.0f);
+	vec3 light(0.0, 125.0f, -150.0f);
 	bool hit;
 	for (int i = 0; i < IMHEIGHT; ++i)
 	{
@@ -56,14 +55,9 @@ int main(int argc, char* argv[])
 		{
 			int numHit = 0;
 			vec3 pras(float(j), float(i), 0.0f);
-			vec3 pcam = rastToScreen.transformPoint(pras);
-			pcam = screenToCamera.transformPoint(pcam);
-			Ray ray(pcam, vec3(0.0f, 0.0f, 1.0f));
-			ray = cameraToWorld.transformRay(ray);
-			//fprintf(stderr, "World Position at x=%f y=%f\n", ray.o.x, ray.o.y);
-			ray.dir = normalize(ray.dir);
-			float tHit = 0;
-
+			Ray ray = cam->generateRay(float(j), float(i));
+			//fprintf(stderr, "Casting ray in dir: %f,%f,%f \n", ray.dir.x, ray.dir.y, ray.dir.z);
+			float tHit = -std::numeric_limits<float>::infinity();
 			for each( auto& surf in surfaces)
 			{
 				float tObj = 0;
@@ -84,9 +78,9 @@ int main(int argc, char* argv[])
 			vec3 L = normalize(light - surfaceHit->p);
 			float ndl = dot(surfaceHit->n, L);
 			float lterm = std::max(ndl, 0.0f);
-			uint8_t r = sphere_color[0] * lterm; 
-			uint8_t g = sphere_color[1] * lterm;
-			uint8_t b = sphere_color[2] * lterm;
+			uint8_t r = sphere_color[0] * lterm + 5; 
+			uint8_t g = sphere_color[1] * lterm + 40;
+			uint8_t b = sphere_color[2] * lterm + 40;
 			g_red[i* IMWIDTH + j] = r;
 			g_green[i* IMWIDTH + j] = g;
 			g_blue[i * IMWIDTH + j] = b;

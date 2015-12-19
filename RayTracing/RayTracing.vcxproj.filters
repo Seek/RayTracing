@@ -13,6 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Cameras">
+      <UniqueIdentifier>{947da39f-5e72-48a3-9867-ca3e31acfbd1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Surfaces">
+      <UniqueIdentifier>{42dd38cf-5c21-4710-afcf-0628fa7d1576}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Cameras">
+      <UniqueIdentifier>{8bacfa03-d32d-451d-a6ac-ea894d9a1cc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Surfaces">
+      <UniqueIdentifier>{0f4c3297-5ba2-49c3-9148-a93dd430174f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\raytracing.cpp">
@@ -27,17 +39,20 @@
     <ClCompile Include="..\src\Transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Sphere.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\Sampling.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\RNG.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Sphere.cpp">
+      <Filter>Source Files\Surfaces</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\Plane.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Surfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\PerspectiveCamera.cpp">
+      <Filter>Source Files\Cameras</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -62,16 +77,10 @@
     <ClInclude Include="..\src\rt_util.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Sphere.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\Sampling.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\RNG.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Plane.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Camera.hpp">
@@ -85,6 +94,15 @@
     </ClInclude>
     <ClInclude Include="..\src\Intersection.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\PerspectiveCamera.hpp">
+      <Filter>Header Files\Cameras</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Sphere.hpp">
+      <Filter>Header Files\Surfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Plane.hpp">
+      <Filter>Header Files\Surfaces</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
