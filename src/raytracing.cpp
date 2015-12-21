@@ -18,15 +18,28 @@ std::vector<uint8_t> g_red(IMWIDTH*IMHEIGHT);
 std::vector<uint8_t> g_green(IMWIDTH*IMHEIGHT);
 std::vector<uint8_t> g_blue(IMWIDTH*IMHEIGHT);
 
+static const int SamplesPerPixel = 16;
+
 static int save_png_to_file(const char *path);
 void readpng_version_info();
 
+vec3 brdf(const vec3& wo, const vec3& wi, const vec3& color)
+{
+	return color * M_1_PI;
+}
+
 int main(int argc, char* argv[]) 
 {
+
+	//Samples
+	RNG rng;
+	std::vector<float> image_samples;
+	image_samples.reserve(IMWIDTH * IMHEIGHT * SamplesPerPixel * 2);
+	//Generate image samples
 	// Setup  camera
-	Transform worldToCamera = Transform::lookat(vec3(0.0f, 0.0f, -200.0f), vec3(), vec3(0.0f, 1.0f, 0.0f));
+	Transform worldToCamera = Transform::lookat(vec3(0.0f, 0.0f, -400.0f), vec3(), vec3(0.0f, 1.0f, 0.0f));
 	float aspectRatio = float(IMWIDTH) / float(IMHEIGHT);
-	float hFOV = degreeToRadians(90.0f); //degrees
+	float hFOV = degreeToRadians(66.0f); //degrees
 	float vFOV = 2 * atan(tan(hFOV / 2) * aspectRatio);
 	float yScale = 1.0f / tan(vFOV / 2);
 	float xScale = yScale / aspectRatio;
@@ -46,10 +59,10 @@ int main(int argc, char* argv[])
 	std::shared_ptr<Sphere> sphere(new Sphere(transformSphere, inv(transformSphere), 100.0f));
 	std::shared_ptr<Material> sphereMat(new Material(vec3(0.0f, 0.5f, 0.5f)));
 	std::shared_ptr<Plane> plane(new Plane(vec3(0.0, 0.0f, 200.0f), vec3(0.0f, 0.0f, -1.0f))); //Back wall
-	std::shared_ptr<Plane> plane1(new Plane(vec3(0.0, 400.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f))); //Ceiling
-	std::shared_ptr<Plane> plane2(new Plane(vec3(0.0, -400.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f))); //Floot
-	std::shared_ptr<Plane> plane3(new Plane(vec3(-400.0, 0.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f))); //Left Wall
-	std::shared_ptr<Plane> plane4(new Plane(vec3(400.0, 0.0f, 0.0f), vec3(-1.0f, 0.0f, 0.0f))); //Right Wall
+	std::shared_ptr<Plane> plane1(new Plane(vec3(0.0, 200.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f))); //Ceiling
+	std::shared_ptr<Plane> plane2(new Plane(vec3(0.0, -200.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f))); //Floot
+	std::shared_ptr<Plane> plane3(new Plane(vec3(-200.0, 0.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f))); //Left Wall
+	std::shared_ptr<Plane> plane4(new Plane(vec3(200.0, 0.0f, 0.0f), vec3(-1.0f, 0.0f, 0.0f))); //Right Wall
 	std::shared_ptr<Material> planeMat(new Material(vec3(1.0f, 1.0f, 1.0f)));
 	objects.push_back(std::shared_ptr<Renderable>(new Renderable(sphere, sphereMat)));
 	objects.push_back(std::shared_ptr<Renderable>(new Renderable(plane, planeMat)));
@@ -59,7 +72,7 @@ int main(int argc, char* argv[])
 	objects.push_back(std::shared_ptr<Renderable>(new Renderable(plane4, planeMat)));
 	std::shared_ptr<Intersection> intersection(new Intersection());
 	Intersection trueIntersection;
-	vec3 light(0.0, 125.0f, -150.0f);
+	vec3 light(0.0, 190.0f, 0.0f);
 	bool hit;
 	for (int i = 0; i < IMHEIGHT; ++i)
 	{
