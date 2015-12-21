@@ -10,10 +10,11 @@ Plane::Plane(const vec3& p, const vec3 & n, const vec3 & min, const vec3 & max)
 {
 }
 
-bool Plane::intersect(const Ray & r, float * tHit, LocalSurface * ls) const
+
+bool Plane::intersect(const Ray & r, float * tHit, std::shared_ptr<LocalSurface>& ls) const
 {
 	float ldn = dot(r.dir, normal);
-	if (ldn > 0 || ldn < 0)
+	if (ldn < 0)
 	{
 		*tHit = dot((point - r.o), normal) / ldn;
 		ls->p = r(*tHit);

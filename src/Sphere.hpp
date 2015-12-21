@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <memory>
 #include "rt_util.hpp"
 #include "Surface.hpp"
 
@@ -13,7 +14,7 @@ public:
 		: Surface(obj2world, world2obj), radius(_radius) {}
 	
 	// Inherited via Surface
-	virtual bool intersect(const Ray & r, float * tHit, LocalSurface * ls) const override;
+	virtual bool intersect(const Ray & r, float * tHit, std::shared_ptr<LocalSurface>& ls) const override;
 private:
 	float radius = 1.0f;
 };

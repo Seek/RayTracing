@@ -17,7 +17,7 @@ Ray PerspectiveCamera::generateRay(float rasterX, float rasterY) const
 	vec3 pCamera = rasterToScreen.transformPoint(pRaster);
 	pCamera = screenToCamera.transformPoint(pCamera);
 	//Ray r(pCamera, vec3(0.0f, 0.0f, 1.0f));
-	Ray r(vec3(0.0f, 0.0f, 0.0f), pCamera);
+	Ray r(vec3(0.0f, 0.0f, 0.0f), normalize(pCamera));
 	r = cam2world.transformRay(r);
 	r.dir = normalize(r.dir);
 	return r;

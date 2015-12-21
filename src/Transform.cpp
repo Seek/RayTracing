@@ -96,9 +96,9 @@ Transform Transform::orthographic(float left, float right, float top, float bott
 
 Transform Transform::perspective(float left, float right, float top, float bottom, float near, float far)
 {
-	mat4 tmp((2.0f*near) / (right - left), 0.0f, -(right + left) / (right - left), 0.0f,
+	mat4 tmp( (2.0f * near) / (right - left), 0.0f, -(right + left) / (right - left), 0.0f,
 		0.0f, (2 * near) / (top - bottom), -(top + bottom) / (top - bottom), 0.0f,
-		0.0f, 0.0f, (far + near) / (far - near), -(2 * far*near) / (far - near),
+		0.0f, 0.0f, (far) / (far - near), -(far*near) / (far - near),
 		0.0f, 0.0f, 1.0f, 0.0f);
 	return Transform(tmp, inv(tmp));
 }

@@ -14,39 +14,51 @@
 #define IMWIDTH 1024
 #define IMHEIGHT 768
 
-float force;
 std::vector<uint8_t> g_red(IMWIDTH*IMHEIGHT);
 std::vector<uint8_t> g_green(IMWIDTH*IMHEIGHT);
 std::vector<uint8_t> g_blue(IMWIDTH*IMHEIGHT);
-uint8_t sphere_color[3] = { 0, 128, 128 };
-uint8_t plane_color[3] = { 128, 128, 128 };
 
 static int save_png_to_file(const char *path);
 void readpng_version_info();
 
 int main(int argc, char* argv[]) 
 {
-	RNG rng;
-	std::vector<float> samples, samples2;
-	samples.reserve(16); samples2.reserve(16 * 16 * 2);
-	stratified1D(16, false, samples, rng);
-	stratified2D(16, 16, true, samples2, rng);
+	// Setup  camera
 	Transform worldToCamera = Transform::lookat(vec3(0.0f, 0.0f, -200.0f), vec3(), vec3(0.0f, 1.0f, 0.0f));
-	std::unique_ptr<Camera> cam( new PerspectiveCamera(inv(worldToCamera),worldToCamera,
-		float(-IMWIDTH / 2.0f), float(IMWIDTH / 2.0f), float(-IMHEIGHT / 2.0f), float(IMHEIGHT / 2.0f), 0.1f, 1000.0f,
-		IMWIDTH, IMHEIGHT));
-	readpng_version_info();
-	Transform t;
-	Transform tinv = inv(t);
-	std::vector<std::unique_ptr<Surface> > surfaces;
-	surfaces.push_back(std::unique_ptr<Surface>(new Sphere(t, tinv, 125.0f)));
-	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(), vec3(0.0f, 1.0f, 0.0f))));
-	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(0, 0, 150.0f), vec3(0.0f, 0.0f, -1.0f))));
-	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(0, 150.0, 0.0f), vec3(0.0f, -1.0f, 0.0f))));
-	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(0, 300.0f, 0.0f), vec3(-1.0f, 0.0f, 0.0f))));
-	//surfaces.push_back(std::unique_ptr<Surface>(new Plane(vec3(0, -300.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f))));
-	std::unique_ptr<LocalSurface> surfaceHit;
-	LocalSurface ls;
+	float aspectRatio = float(IMWIDTH) / float(IMHEIGHT);
+	float hFOV = degreeToRadians(90.0f); //degrees
+	float vFOV = 2 * atan(tan(hFOV / 2) * aspectRatio);
+	float yScale = 1.0f / tan(vFOV / 2);
+	float xScale = yScale / aspectRatio;
+	float near = 0.1f; float far = 1000.0f;
+	float right = near / xScale;
+	float left = -right;
+	float top = -near / yScale;
+	float bottom = -top;
+	std::unique_ptr<Camera> cam( new PerspectiveCamera(inv(worldToCamera),worldToCamera, left, right, top, bottom,
+		near, far, IMWIDTH, IMHEIGHT));
+	//readpng_version_info();
+	// Setup scene
+	std::vector<std::shared_ptr<Renderable> > objects;
+	objects.reserve(10);
+	//Add a sphere
+	Transform transformSphere = Transform::translate(100.0, 0.0f, 0.0f);
+	std::shared_ptr<Sphere> sphere(new Sphere(transformSphere, inv(transformSphere), 100.0f));
+	std::shared_ptr<Material> sphereMat(new Material(vec3(0.0f, 0.5f, 0.5f)));
+	std::shared_ptr<Plane> plane(new Plane(vec3(0.0, 0.0f, 200.0f), vec3(0.0f, 0.0f, -1.0f))); //Back wall
+	std::shared_ptr<Plane> plane1(new Plane(vec3(0.0, 400.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f))); //Ceiling
+	std::shared_ptr<Plane> plane2(new Plane(vec3(0.0, -400.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f))); //Floot
+	std::shared_ptr<Plane> plane3(new Plane(vec3(-400.0, 0.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f))); //Left Wall
+	std::shared_ptr<Plane> plane4(new Plane(vec3(400.0, 0.0f, 0.0f), vec3(-1.0f, 0.0f, 0.0f))); //Right Wall
+	std::shared_ptr<Material> planeMat(new Material(vec3(1.0f, 1.0f, 1.0f)));
+	objects.push_back(std::shared_ptr<Renderable>(new Renderable(sphere, sphereMat)));
+	objects.push_back(std::shared_ptr<Renderable>(new Renderable(plane, planeMat)));
+	objects.push_back(std::shared_ptr<Renderable>(new Renderable(plane1, planeMat)));
+	objects.push_back(std::shared_ptr<Renderable>(new Renderable(plane2, planeMat)));
+	objects.push_back(std::shared_ptr<Renderable>(new Renderable(plane3, planeMat)));
+	objects.push_back(std::shared_ptr<Renderable>(new Renderable(plane4, planeMat)));
+	std::shared_ptr<Intersection> intersection(new Intersection());
+	Intersection trueIntersection;
 	vec3 light(0.0, 125.0f, -150.0f);
 	bool hit;
 	for (int i = 0; i < IMHEIGHT; ++i)
@@ -57,15 +69,18 @@ int main(int argc, char* argv[])
 			vec3 pras(float(j), float(i), 0.0f);
 			Ray ray = cam->generateRay(float(j), float(i));
 			//fprintf(stderr, "Casting ray in dir: %f,%f,%f \n", ray.dir.x, ray.dir.y, ray.dir.z);
-			float tHit = -std::numeric_limits<float>::infinity();
-			for each( auto& surf in surfaces)
+			float tHit = std::numeric_limits<float>::infinity();
+			for each( auto& surf in objects)
 			{
 				float tObj = 0;
-				hit = surf->intersect(ray, &tObj, &ls);
-				if (tObj < tHit || hit == false) continue;
-				tHit = tObj;
-				surfaceHit = std::unique_ptr<LocalSurface> (new LocalSurface(ls));
+				hit = surf->intersect(ray, &tObj, intersection);
+				if (hit == false) continue;
 				numHit += 1;
+				if (tObj < tHit)
+				{
+					trueIntersection = *intersection;
+					tHit = tObj;
+				}
 			}
 			if (numHit == 0)
 			{
@@ -74,13 +89,14 @@ int main(int argc, char* argv[])
 				g_green[i* IMWIDTH + j] = 0;
 				continue;
 			}
-
-			vec3 L = normalize(light - surfaceHit->p);
-			float ndl = dot(surfaceHit->n, L);
+			//fprintf(stderr, "Number of objects hit: %i\n", numHit);
+			vec3 L = normalize(light - trueIntersection.ls->p);
+			float ndl = dot(trueIntersection.ls->n, L);
 			float lterm = std::max(ndl, 0.0f);
-			uint8_t r = sphere_color[0] * lterm + 5; 
-			uint8_t g = sphere_color[1] * lterm + 40;
-			uint8_t b = sphere_color[2] * lterm + 40;
+			vec3 color = trueIntersection.material->getColor();
+			uint8_t r = std::min(uint8_t((color.x * lterm) * 255), (uint8_t)255); 
+			uint8_t g = std::min(uint8_t((color.y * lterm) * 255), (uint8_t)255);
+			uint8_t b = std::min(uint8_t((color.z * lterm) * 255), (uint8_t)255);
 			g_red[i* IMWIDTH + j] = r;
 			g_green[i* IMWIDTH + j] = g;
 			g_blue[i * IMWIDTH + j] = b;

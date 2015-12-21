@@ -1,6 +1,6 @@
 #include "Sphere.hpp"
 
-bool Sphere::intersect(const Ray & r, float * tHit, LocalSurface * ls) const
+bool Sphere::intersect(const Ray & r, float * tHit, std::shared_ptr<LocalSurface>& ls) const
 {
 	Ray ray(world2obj.transformPoint(r.o), world2obj.transformVector(r.dir));
 	float a = ray.dir.length_squared();

@@ -13,7 +13,7 @@ public:
 	Surface(const Transform& _obj2world, const Transform& _world2obj)
 		: obj2world(_obj2world), world2obj(_world2obj) {}
 
-	virtual bool intersect(const Ray& r, float* tHit, LocalSurface* ls) const = 0;
+	virtual bool intersect(const Ray& r, float* tHit, std::shared_ptr<LocalSurface>& ls) const = 0;
 
 	Transform obj2world, world2obj;
 };

@@ -5,13 +5,15 @@
 #pragma once
 #endif
 
+
+#include <memory>
 #include "Material.hpp"
 #include "LocalSurface.hpp"
-#include <memory>
 
 class Intersection
 {
 public:
+	Intersection() {};
 	Intersection(std::shared_ptr<LocalSurface> _ls, std::shared_ptr<Material> _material)
 		: ls(_ls), material(_material) {}
 	std::shared_ptr<LocalSurface> ls;

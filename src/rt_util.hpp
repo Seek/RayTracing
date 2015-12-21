@@ -6,6 +6,14 @@
 #include <cmath>
 #include <algorithm>
 
+inline float degreeToRadians(float theta)
+{
+	return ( M_PI * theta) / 180.0f;
+}
+inline float radiansToDegrees(float theta)
+{
+	return (theta*180.0f) / M_PI;
+}
 inline float lerp(float t, float v1, float v2)
 {
 	return (1.0f - t) * v1 + t * v2;
