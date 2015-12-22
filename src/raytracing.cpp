@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 	//Samples
 	RNG rng;
 	std::vector<float> image_samples;
-	image_samples.reserve(IMWIDTH * IMHEIGHT * SamplesPerPixel * 2);
+	//image_samples.reserve(IMWIDTH * IMHEIGHT * SamplesPerPixel * 2);
 	//Generate image samples
 	// Setup  camera
 	Transform worldToCamera = Transform::lookat(vec3(0.0f, 0.0f, -400.0f), vec3(), vec3(0.0f, 1.0f, 0.0f));
@@ -104,12 +104,20 @@ int main(int argc, char* argv[])
 			}
 			//fprintf(stderr, "Number of objects hit: %i\n", numHit);
 			vec3 L = normalize(light - trueIntersection.ls->p);
+			float d = (light - trueIntersection.ls->p).length(); d *= d;
 			float ndl = dot(trueIntersection.ls->n, L);
 			float lterm = std::max(ndl, 0.0f);
-			vec3 color = trueIntersection.material->getColor();
-			uint8_t r = std::min(uint8_t((color.x * lterm) * 255), (uint8_t)255); 
-			uint8_t g = std::min(uint8_t((color.y * lterm) * 255), (uint8_t)255);
-			uint8_t b = std::min(uint8_t((color.z * lterm) * 255), (uint8_t)255);
+			vec3 color = brdf(vec3(), vec3(), trueIntersection.material->getColor());
+			float rr = color.x * lterm * (40000.0f / d);
+			float gg = color.y * lterm * (40000.0f / d);
+			float bb = color.z * lterm * (40000.0f / d);
+			rr = std::pow(rr, 1.0f / 2.2f);
+			gg = std::pow(gg, 1.0f / 2.2f);
+			bb = std::pow(bb, 1.0f / 2.2f);
+			rr = std::min(rr, 1.0f); gg = std::min(gg, 1.0f); bb = std::min(bb, 1.0f);
+			uint8_t r = std::min(uint8_t((rr * 255.0f)), (uint8_t) 255); 
+			uint8_t g = std::min(uint8_t((gg * 255.0f)), (uint8_t)255);
+			uint8_t b = std::min(uint8_t((bb * 255.0f)), (uint8_t)255);
 			g_red[i* IMWIDTH + j] = r;
 			g_green[i* IMWIDTH + j] = g;
 			g_blue[i * IMWIDTH + j] = b;
