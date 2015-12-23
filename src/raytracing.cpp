@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 	std::vector<std::shared_ptr<Renderable> > objects;
 	objects.reserve(10);
 	//Add a sphere
-	Transform transformSphere = Transform::translate(100.0, 0.0f, 0.0f);
+	Transform transformSphere = Transform::translate(100.0, 0.0f, 95.0f);
 	std::shared_ptr<Sphere> sphere(new Sphere(transformSphere, inv(transformSphere), 100.0f));
 	std::shared_ptr<Material> sphereMat(new Material(vec3(0.0f, 0.5f, 0.5f)));
 	std::shared_ptr<Plane> plane(new Plane(vec3(0.0, 0.0f, 200.0f), vec3(0.0f, 0.0f, -1.0f))); //Back wall
@@ -102,15 +102,56 @@ int main(int argc, char* argv[])
 				g_green[i* IMWIDTH + j] = 0;
 				continue;
 			}
+
+			//One bounce?
 			//fprintf(stderr, "Number of objects hit: %i\n", numHit);
 			vec3 L = normalize(light - trueIntersection.ls->p);
 			float d = (light - trueIntersection.ls->p).length(); d *= d;
 			float ndl = dot(trueIntersection.ls->n, L);
 			float lterm = std::max(ndl, 0.0f);
 			vec3 color = brdf(vec3(), vec3(), trueIntersection.material->getColor());
-			float rr = color.x * lterm * (40000.0f / d);
-			float gg = color.y * lterm * (40000.0f / d);
-			float bb = color.z * lterm * (40000.0f / d);
+			float rr = color.x * lterm * (20000.0f / d);
+			float gg = color.y * lterm * (20000.0f / d);
+			float bb = color.z * lterm * (20000.0f / d);
+			vec3 newRayDir = cosineSampleHemisphere(rng.nextFloat(), rng.nextFloat());
+			Ray newRay(trueIntersection.ls->p, normalize(newRayDir), tHit + 0.00001f);
+			numHit = 0;
+			tHit = std::numeric_limits<float>::infinity();
+			for each(auto& surf in objects)
+			{
+				float tObj = 0;
+				hit = surf->intersect(newRay, &tObj, intersection);
+				if (hit == false) continue;
+				numHit += 1;
+				if (tObj < tHit)
+				{
+					trueIntersection = *intersection;
+					tHit = tObj;
+				}
+			}
+			if (numHit == 0)
+			{
+				rr = std::pow(rr, 1.0f / 2.2f);
+				gg = std::pow(gg, 1.0f / 2.2f);
+				bb = std::pow(bb, 1.0f / 2.2f);
+				rr = std::min(rr, 1.0f); gg = std::min(gg, 1.0f); bb = std::min(bb, 1.0f);
+				uint8_t r = std::min(uint8_t((rr * 255.0f)), (uint8_t)255);
+				uint8_t g = std::min(uint8_t((gg * 255.0f)), (uint8_t)255);
+				uint8_t b = std::min(uint8_t((bb * 255.0f)), (uint8_t)255);
+				g_red[i* IMWIDTH + j] = r;
+				g_green[i* IMWIDTH + j] = g;
+				g_blue[i * IMWIDTH + j] = b;
+				continue;
+			}
+			L = normalize(light - trueIntersection.ls->p);
+			d = (light - trueIntersection.ls->p).length(); d *= d;
+			ndl = dot(trueIntersection.ls->n, L);
+			lterm = std::max(ndl, 0.0f);
+			color = brdf(vec3(), vec3(), trueIntersection.material->getColor());
+			float dddd = (dot(vec3(0, 0, 1), normalize(newRayDir)) / cosineHemispherePdf(normalize(newRayDir).z, 0.0f));
+			rr += color.x * lterm * (20000.0f / d) *  dddd;
+			gg += color.y * lterm * (20000.0f / d) * dddd;
+			bb += color.z * lterm * (20000.0f / d) * dddd;
 			rr = std::pow(rr, 1.0f / 2.2f);
 			gg = std::pow(gg, 1.0f / 2.2f);
 			bb = std::pow(bb, 1.0f / 2.2f);

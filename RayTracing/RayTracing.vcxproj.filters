@@ -110,5 +110,8 @@
     <ClInclude Include="..\src\Plane.hpp">
       <Filter>Header Files\Surfaces</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\Image.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

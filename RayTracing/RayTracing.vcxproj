@@ -170,6 +170,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Camera.hpp" />
+    <ClInclude Include="..\src\Image.hpp" />
     <ClInclude Include="..\src\Intersection.hpp" />
     <ClInclude Include="..\src\LocalSurface.hpp" />
     <ClInclude Include="..\src\mat4.hpp" />
