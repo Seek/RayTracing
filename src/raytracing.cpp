@@ -11,14 +11,11 @@
 #include "Sampling.hpp"
 #include "Renderable.hpp"
 #include "PerspectiveCamera.hpp"
-#define IMWIDTH 1024
-#define IMHEIGHT 768
-
-std::vector<uint8_t> g_red(IMWIDTH*IMHEIGHT);
-std::vector<uint8_t> g_green(IMWIDTH*IMHEIGHT);
-std::vector<uint8_t> g_blue(IMWIDTH*IMHEIGHT);
+#include "Image.hpp"
 
 static const int SamplesPerPixel = 16;
+static const int ImageWidth = 1280;
+static const int ImageHeight = 720;
 
 static int save_png_to_file(const char *path);
 void readpng_version_info();
@@ -30,15 +27,16 @@ vec3 brdf(const vec3& wo, const vec3& wi, const vec3& color)
 
 int main(int argc, char* argv[]) 
 {
-
+	//Create the image
+	Image render(ImageWidth, ImageHeight);
 	//Samples
 	RNG rng;
 	std::vector<float> image_samples;
-	//image_samples.reserve(IMWIDTH * IMHEIGHT * SamplesPerPixel * 2);
+	image_samples.reserve((ImageWidth + 1) * (ImageHeight + 1) * SamplesPerPixel * 2);
 	//Generate image samples
 	// Setup  camera
 	Transform worldToCamera = Transform::lookat(vec3(0.0f, 0.0f, -400.0f), vec3(), vec3(0.0f, 1.0f, 0.0f));
-	float aspectRatio = float(IMWIDTH) / float(IMHEIGHT);
+	float aspectRatio = render.getAspectRatio();
 	float hFOV = degreeToRadians(66.0f); //degrees
 	float vFOV = 2 * atan(tan(hFOV / 2) * aspectRatio);
 	float yScale = 1.0f / tan(vFOV / 2);
@@ -49,7 +47,7 @@ int main(int argc, char* argv[])
 	float top = -near / yScale;
 	float bottom = -top;
 	std::unique_ptr<Camera> cam( new PerspectiveCamera(inv(worldToCamera),worldToCamera, left, right, top, bottom,
-		near, far, IMWIDTH, IMHEIGHT));
+		near, far, ImageWidth, ImageHeight));
 	//readpng_version_info();
 	// Setup scene
 	std::vector<std::shared_ptr<Renderable> > objects;

@@ -156,6 +156,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\Image.cpp" />
     <ClCompile Include="..\src\Intersection.cpp" />
     <ClCompile Include="..\src\mat4.cpp" />
     <ClCompile Include="..\src\PerspectiveCamera.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="..\src\Renderable.hpp" />
     <ClInclude Include="..\src\RNG.hpp" />
     <ClInclude Include="..\src\rt_util.hpp" />
+    <ClInclude Include="..\src\Sample.hpp" />
     <ClInclude Include="..\src\Sampling.hpp" />
     <ClInclude Include="..\src\Sphere.hpp" />
     <ClInclude Include="..\src\Surface.hpp" />

@@ -60,6 +60,9 @@
     <ClCompile Include="..\src\Renderable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\vec3.hpp">
@@ -111,6 +114,9 @@
       <Filter>Header Files\Surfaces</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Image.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Sample.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
