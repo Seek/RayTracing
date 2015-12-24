@@ -14,7 +14,7 @@
 #include "Image.hpp"
 #include "Sample.hpp"
 
-static const int SamplesPerPixel = 64;
+static const int SamplesPerPixel = 4;
 static const int ImageWidth = 800;
 static const int ImageHeight = 600;
 static const int maxDepth = 5;
