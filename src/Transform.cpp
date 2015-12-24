@@ -108,3 +108,13 @@ Transform Transform::screenToRaster(float imWidth, float imHeight)
 	return Transform::scale(imWidth / 2.0f, imHeight / 2.0f, 1.0f) *
 		Transform::translate(1.0f, 1.0f, 0.0f);
 }
+
+Transform Transform::worldToShading(const vec3 & normal, const vec3 & tangent, const vec3 & bitangent)
+{
+	mat4 tmp(bitangent.x, bitangent.y, bitangent.z, 0,
+		tangent.x, tangent.y, tangent.z, 0,
+		normal.x, normal.y, normal.z, 0,
+		0, 0, 0, 1.0f);
+	mat4 inv = transpose(tmp);
+	return Transform(tmp, inv);
+}

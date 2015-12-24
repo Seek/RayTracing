@@ -28,7 +28,7 @@ inline vec3 cosineSampleHemisphere(float u1, float u2) {
 }
 
 inline float cosineHemispherePdf(float costheta, float phi) {
-	return costheta * M_1_PI;
+	return costheta * float(M_1_PI);
 }
 //inline float CosTheta(const vec3 &w) { return w.z; }
 //inline float AbsCosTheta(const vec3 &w) { return fabsf(w.z); }

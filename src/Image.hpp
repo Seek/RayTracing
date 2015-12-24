@@ -28,7 +28,7 @@ class Image
 public:
 	Image(int _width, int _height);
 	void addSample(const Sample& sample, const vec3& color);
-	void saveImage(const char* path);
+	int saveImage(const char* path);
 	float getAspectRatio() const { return aspectRatio; }
 protected:
 	float aspectRatio;

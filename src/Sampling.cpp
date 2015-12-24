@@ -104,7 +104,7 @@ void concentricSampleDisk(float u1, float u2, float* dx, float* dy)
 			theta = 6.0f + sx / r;
 		}
 	}
-	theta *= M_PI / 4.f;
+	theta *= float(M_PI) / 4.f;
 	*dx = r * cosf(theta);
 	*dy = r * sinf(theta);
 }

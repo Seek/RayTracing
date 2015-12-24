@@ -23,6 +23,7 @@ public:
 	// The pbrt implementation of this function supports subwindowing
 	// we don't at this time.
 	static Transform screenToRaster(float imWidth, float imHeight);
+	static Transform worldToShading(const vec3& normal, const vec3& tangent, const vec3& bitangent);
 	friend Transform inv(const Transform& a);
 	Transform operator*(const Transform& rhs) const;
 	vec3 transformVector(const vec3& a) const;

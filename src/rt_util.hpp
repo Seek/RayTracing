@@ -8,11 +8,11 @@
 
 inline float degreeToRadians(float theta)
 {
-	return ( M_PI * theta) / 180.0f;
+	return ( float(M_PI) * theta) / 180.0f;
 }
 inline float radiansToDegrees(float theta)
 {
-	return (theta*180.0f) / M_PI;
+	return (theta*180.0f) / float(M_PI);
 }
 inline float lerp(float t, float v1, float v2)
 {

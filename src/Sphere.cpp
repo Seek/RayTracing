@@ -22,5 +22,13 @@ bool Sphere::intersect(const Ray & r, float * tHit, std::shared_ptr<LocalSurface
 	}
 	ls->p = obj2world.transformPoint(p);
 	ls->n = normalize(obj2world.transformVector(p));
+	//should check for div by 0?
+	//if (!(p.x < 0.0f) && !(p.x > 0.0f)) p.x = 0.0001f;
+	float u = atan2(p.y, p.x); //phi
+	float v = acos(clamp(-1.0f, 1.0f, p.z / radius)); //theta
+	vec3 dpdu(-radius*sin(v)*sin(u), radius*sin(v)*cos(u), 0);
+	vec3 dpdv(radius*cos(v)*cos(u), radius*cos(v)*sin(u), -radius*cos(v));
+	ls->dpdu = normalize(obj2world.transformVector(dpdu));
+	ls->dpdv = normalize(obj2world.transformVector(dpdv));
 	return true;
 }

@@ -3,7 +3,7 @@
 Image::Image(int _width, int _height)
 	: width(_width), height(_height)
 {
-	pixels.reserve(width * height);
+	pixels.resize((width + 1) * (height + 1));
 	aspectRatio = float(width) / float(height);
 }
 
@@ -11,12 +11,12 @@ void Image::addSample(const Sample & sample, const vec3 & color)
 {
 	float imX = std::floor(sample.imageX); //Samples are continuous
 	float imY = std::floor(sample.imageY);
-	Pixel p = pixels[int(imY) * width + int(imX)];
+	Pixel& p = pixels[int(imY) * width + int(imX)];
 	p.r += color.x; p.g += color.y; p.b += color.z;
 	p.weightSum += 1;
 }
 
-void Image::saveImage(const char * path)
+int Image::saveImage(const char * path)
 {
 	FILE * fp;
 	png_structp png_ptr = NULL;
@@ -83,16 +83,16 @@ void Image::saveImage(const char * path)
 			float b = p.b / p.weightSum;
 			//Correct for gamma
 			r = std::pow(r, 1.0f / 2.2f);
-			g = std::pow(r, 1.0f / 2.2f);
-			b = std::pow(r, 1.0f / 2.2f);
+			g = std::pow(g, 1.0f / 2.2f);
+			b = std::pow(b, 1.0f / 2.2f);
 			//Clamp just in case
 			r = std::min(r, 1.0f); 
 			g = std::min(g, 1.0f); 
 			b = std::min(b, 1.0f);
 			//Convert to uint and write
-			*row++ = png_byte(r);
-			*row++ = png_byte(g);
-			*row++ = png_byte(b);;
+			*row++ = png_byte(r * 255.0f);
+			*row++ = png_byte(g * 255.0f);
+			*row++ = png_byte(b * 255.0f);
 		}
 	}
 
@@ -107,7 +107,7 @@ void Image::saveImage(const char * path)
 
 	status = 0;
 
-	for (y = 0; y < IMHEIGHT; y++) {
+	for (y = 0; y < height; y++) {
 		png_free(png_ptr, row_pointers[y]);
 	}
 	png_free(png_ptr, row_pointers);
