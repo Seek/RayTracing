@@ -13,20 +13,29 @@
 #include "PerspectiveCamera.hpp"
 #include "Image.hpp"
 #include "Sample.hpp"
+#include <thread>
+#include <atomic>
 
-static const int SamplesPerPixel = 4;
+static const int NumXSamples = 8;
+static const int NumYSamples = 8;
+static const int SamplesPerPixel = NumXSamples * NumYSamples;
 static const int ImageWidth = 800;
 static const int ImageHeight = 600;
-static const int maxDepth = 5;
+static const int maxDepth = 3;
 
 static int save_png_to_file(const char *path);
 void readpng_version_info();
 void generate_samples(std::vector<Sample>& samples, const RNG& rng);
-
+std::atomic_uint counter;
 vec3 brdf(const vec3& wo, const vec3& wi, const vec3& color)
 {
 	return color * float(M_1_PI);
 }
+
+void render_func(unsigned int start, unsigned int end,
+	const std::vector<Sample>& samples,
+	const std::vector<std::shared_ptr<Renderable> > objects,
+	const std::unique_ptr<Camera>& cam, Image& render);
 
 int main(int argc, char* argv[]) 
 {
@@ -34,10 +43,10 @@ int main(int argc, char* argv[])
 	Image render(ImageWidth, ImageHeight);
 	//Samples
 	RNG rng;
-	std::vector<Sample> image_samples;
-	image_samples.reserve((ImageWidth) * (ImageHeight) * SamplesPerPixel);
+	std::vector<Sample> image_samples((ImageWidth + 1) * (ImageHeight + 1) * SamplesPerPixel);
 	//Generate image samples
 	generate_samples(image_samples, rng);
+#pragma region WorldSetup 
 	// Setup  camera
 	Transform worldToCamera = Transform::lookat(vec3(0.0f, 0.0f, -200.0f), vec3(), vec3(0.0f, 1.0f, 0.0f));
 	float aspectRatio = render.getAspectRatio();
@@ -52,7 +61,6 @@ int main(int argc, char* argv[])
 	float bottom = -top;
 	std::unique_ptr<Camera> cam( new PerspectiveCamera(inv(worldToCamera),worldToCamera, left, right, top, bottom,
 		near, far, float(ImageWidth), float(ImageHeight)));
-	//readpng_version_info();
 	// Setup scene
 	std::vector<std::shared_ptr<Renderable> > objects;
 	objects.reserve(10);
@@ -74,15 +82,85 @@ int main(int argc, char* argv[])
 	objects.push_back(std::shared_ptr<Renderable>(new Renderable(plane2, whiteMat)));
 	objects.push_back(std::shared_ptr<Renderable>(new Renderable(plane3, redMat)));
 	objects.push_back(std::shared_ptr<Renderable>(new Renderable(plane4, greenMat)));
+#pragma endregion
+	static const int numThreads = 8;
+	std::vector<std::thread> threads(numThreads);
+	unsigned int numSamples = image_samples.size();
+	unsigned int step = std::floor(float(numSamples) / float(numThreads));
+	for (int i = 0; i < numThreads; ++i)
+	{
+		threads[i] = std::thread(render_func, step * i, ((step * (i + 1))),
+			std::ref(image_samples), std::ref(objects), std::ref(cam), std::ref(render));
+	}
+	for (int i = 0; i < numThreads; ++i)
+	{
+		threads[i].join();
+	}
+
+	render.saveImage("render.png");
+}
+
+void readpng_version_info()
+{
+	fprintf(stderr, "   Compiled with libpng %s; using libpng %s.\n",
+		PNG_LIBPNG_VER_STRING, png_libpng_ver);
+	fprintf(stderr, "   Compiled with zlib %s; using zlib %s.\n",
+		ZLIB_VERSION, zlib_version);
+}
+
+void gen_samples_thread(unsigned int start, unsigned int stop,
+	std::vector<Sample>& samples, const RNG& rng)
+{
+	std::vector<float> rawSamples;
+	rawSamples.reserve(SamplesPerPixel * 2);
+	for (unsigned int i = start; i < stop;  i += SamplesPerPixel)
+	{
+		int y = std::floor( (double(i)/double(SamplesPerPixel)) / double(ImageWidth));
+		int x = i/SamplesPerPixel - (y * ImageWidth);
+		stratified2D(NumXSamples, NumYSamples, false, rawSamples, rng);
+		for (int k = 0; k < SamplesPerPixel; ++k)
+		{
+			float tmpx = rawSamples[k * 2];
+			float tmpy = rawSamples[k * 2 + 1];
+			tmpx += x;
+			tmpy += y;
+			samples[i + k] = Sample(tmpx, tmpy);
+		}
+		rawSamples.clear();
+	}
+}
+void generate_samples(std::vector<Sample>& samples, const RNG& rng)
+{
+	const int numThreads = 4;
+	std::vector<std::thread> threads(numThreads);
+	unsigned int numSamples = samples.size();
+	unsigned int step = std::floor(float(numSamples) / float(numThreads));
+	for (int i = 0; i < numThreads; ++i)
+	{
+		threads[i] = std::thread(gen_samples_thread, step * i, ((step * (i + 1))),
+			std::ref(samples), std::ref(rng));
+	}
+	for (int i = 0; i < numThreads; ++i)
+	{
+		threads[i].join();
+	}
+}
+
+void render_func(unsigned int start, unsigned int end,
+	const std::vector<Sample>& samples, 
+	 const std::vector<std::shared_ptr<Renderable> > objects,
+	const std::unique_ptr<Camera>& cam, Image& render)
+{
+	RNG rng;
 	std::shared_ptr<Intersection> intersection(new Intersection());
 	Intersection trueIntersection;
 	vec3 light(0.0, 190.0f, 100.0f);
 	bool hit;
-	unsigned int counter = 0;
 	float lightIntensity = 10000.0f;
-	unsigned int tnSamples = ImageWidth * ImageHeight * SamplesPerPixel;
-	for each(auto& sample in image_samples)
+	unsigned int tnSamples = samples.size();
+	for (unsigned int i = start; i < end; ++i)
 	{
+		const Sample& sample = samples[i];
 		int numHit = 0;
 		Ray ray = cam->generateRay(sample.imageX, sample.imageY);
 		//fprintf(stderr, "Casting ray in dir: %f,%f,%f \n", ray.dir.x, ray.dir.y, ray.dir.z);
@@ -170,128 +248,7 @@ int main(int argc, char* argv[])
 		{
 			float progress = float(counter) / float(tnSamples);
 			progress *= 100.0f;
-			printf("We are  on ray number %u counter and %f percent done\n", counter, progress);
-		}
-	}
-
-	render.saveImage("render.png");
-}
-//
-//int save_png_to_file(const char *path)
-//{
-//	FILE * fp;
-//	png_structp png_ptr = NULL;
-//	png_infop info_ptr = NULL;
-//	size_t x, y;
-//	png_byte ** row_pointers = NULL;
-//	/* "status" contains the return value of this function. At first
-//	it is set to a value which means 'failure'. When the routine
-//	has finished its work, it is set to a value which means
-//	'success'. */
-//	int status = -1;
-//	/* The following number is set by trial and error only. I cannot
-//	see where it it is documented in the libpng manual.
-//	*/
-//	int pixel_size = 3;
-//	int depth = 8;
-//
-//	fp = fopen(path, "wb");
-//	if (!fp) {
-//		goto fopen_failed;
-//	}
-//
-//	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-//	if (png_ptr == NULL) {
-//		goto png_create_write_struct_failed;
-//	}
-//
-//	info_ptr = png_create_info_struct(png_ptr);
-//	if (info_ptr == NULL) {
-//		goto png_create_info_struct_failed;
-//	}
-//
-//	/* Set up error handling. */
-//
-//	if (setjmp(png_jmpbuf(png_ptr))) {
-//		goto png_failure;
-//	}
-//
-//	/* Set image attributes. */
-//
-//	png_set_IHDR(png_ptr,
-//		info_ptr,
-//		IMWIDTH,
-//		IMHEIGHT,
-//		depth,
-//		PNG_COLOR_TYPE_RGB,
-//		PNG_INTERLACE_NONE,
-//		PNG_COMPRESSION_TYPE_DEFAULT,
-//		PNG_FILTER_TYPE_DEFAULT);
-//
-//	/* Initialize rows of PNG. */
-//
-//	row_pointers = (png_bytepp)png_malloc(png_ptr, IMHEIGHT * sizeof(png_byte *));
-//	for (y = 0; y < IMHEIGHT; ++y) {
-//		png_byte *row =
-//			(png_bytep)png_malloc(png_ptr, sizeof(uint8_t) * IMWIDTH * pixel_size);
-//		row_pointers[y] = row;
-//		for (x = 0; x < IMWIDTH; ++x) {
-//			*row++ = g_red[y * IMWIDTH + x];
-//			*row++ = g_green[y * IMWIDTH + x];
-//			*row++ = g_blue[y * IMWIDTH + x];
-//		}
-//	}
-//
-//	/* Write the image data to "fp". */
-//
-//	png_init_io(png_ptr, fp);
-//	png_set_rows(png_ptr, info_ptr, row_pointers);
-//	png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
-//
-//	/* The routine has successfully written the file, so we set
-//	"status" to a value which indicates success. */
-//
-//	status = 0;
-//
-//	for (y = 0; y < IMHEIGHT; y++) {
-//		png_free(png_ptr, row_pointers[y]);
-//	}
-//	png_free(png_ptr, row_pointers);
-//
-//png_failure:
-//png_create_info_struct_failed:
-//	png_destroy_write_struct(&png_ptr, &info_ptr);
-//png_create_write_struct_failed:
-//	fclose(fp);
-//fopen_failed:
-//	return status;
-//}
-
-void readpng_version_info()
-{
-	fprintf(stderr, "   Compiled with libpng %s; using libpng %s.\n",
-		PNG_LIBPNG_VER_STRING, png_libpng_ver);
-	fprintf(stderr, "   Compiled with zlib %s; using zlib %s.\n",
-		ZLIB_VERSION, zlib_version);
-}
-
-void generate_samples(std::vector<Sample>& samples, const RNG& rng)
-{
-	std::vector<float> rawSamples;
-	rawSamples.reserve(SamplesPerPixel * 2);
-	int spp2 = SamplesPerPixel / 2;
-	for (int y = 0; y < ImageHeight + 1; ++y)
-	{
-		for (int x = 0; x < ImageWidth + 1; ++x)
-		{
-			stratified2D(spp2, spp2, true, rawSamples, rng);
-			for (int i = 0; i < SamplesPerPixel; ++i)
-			{
-				float tmpx = rawSamples[i * 2];
-				float tmpy = rawSamples[i * 2 + 1];
-				samples.push_back(Sample(tmpx + x, tmpy + y));
-			}
-			rawSamples.clear();
+			printf("We are  on ray number %u counter and %f percent done\n", counter.load(), progress);
 		}
 	}
 }

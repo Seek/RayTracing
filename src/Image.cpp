@@ -9,6 +9,7 @@ Image::Image(int _width, int _height)
 
 void Image::addSample(const Sample & sample, const vec3 & color)
 {
+	std::lock_guard<std::mutex> guard(mutex);
 	float imX = std::floor(sample.imageX); //Samples are continuous
 	float imY = std::floor(sample.imageY);
 	Pixel& p = pixels[int(imY) * width + int(imX)];

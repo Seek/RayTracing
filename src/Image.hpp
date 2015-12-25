@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <vector>
+#include <mutex>
 #include "zlib.h"
 #include "png.h"
 #include "vec3.hpp"
@@ -35,6 +36,8 @@ protected:
 	int width;
 	int height;
 	std::vector<Pixel> pixels;
+private:
+	std::mutex mutex;
 
 };
 #endif // !IMAGE_HPP
