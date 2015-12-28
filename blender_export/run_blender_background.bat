@@ -1,0 +1,1 @@
+blender test_scene.blend --background --python blender_scene_export.py
