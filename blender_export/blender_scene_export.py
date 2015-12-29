@@ -10,6 +10,23 @@ import gzip
 
 # TODO: Accept cmd line params for controlling output
 
+scene = bpy.data.scenes[0]
+
+def matrix_to_string(matrix):
+    val = ""
+    rowlen = len(matrix.row)
+    collen = len(matrix.col)
+    for i in range(collen):
+        for j in range(rowlen):
+            if j != (rowlen - 1):
+                val += '{0},'.format(matrix[i][j])
+            else:
+                val += '{0}'.format(matrix[i][j])
+        val += '\n'
+    return val
+
+def is_mesh_triagulated(mesh):
+    pass
 
 # Get the current filename
 CURRENT_FILE = bpy.path.basename(bpy.context.blend_data.filepath)
@@ -40,6 +57,7 @@ with open(FILENAME, 'wt') as f:
                                                lo.location.z)
         buf += 'energy={0}\n'.format(l.energy)
         buf += 'distance={0}\n'.format(l.distance)
+        buf += 'object_to_world={0}'.format(matrix_to_string(lo.matrix_world))
         if l.type == 'HEMI':
             pass
         elif l.type == 'POINT':
@@ -55,3 +73,14 @@ with open(FILENAME, 'wt') as f:
             pass
         buf += 'end light\n'
         f.write(buf)
+    for m in meshes:
+        apply_modifiers = True
+        settings = 'PREVIEW'
+        buf = ''
+        mo = bpy.data.objects[m.name]
+        mesh = mo.to_mesh(scene, apply_modifiers, settings)
+        bm = bmesh.new()
+        bm.from_mesh(m)
+        bmesh.ops.triangulate(bm, faces=bm.faces)
+        bm.free()
+        bpy.data.meshes.remove(mesh)
